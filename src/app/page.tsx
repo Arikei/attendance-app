@@ -133,8 +133,6 @@ export default function Home() {
       .gte('lesson_date', startDate)
       .lte('lesson_date', endDate)
       .order('period', { ascending: true });
-    console.log('【確認用】取得できたデータ:', data);
-    console.log('【確認用】エラーの内容:', error);
     if (error) {
       console.error('Error fetching schedule:', error);
     } else {
@@ -328,7 +326,7 @@ export default function Home() {
                               {lesson && lesson.classes ? (
                                 // ★ここをLinkタグに変更してクリック可能にしました
                                 <Link 
-                                  href={`/class/${lesson.classes.id}`}
+                                  href={`/class/${lesson.classes.id}/${lesson.lesson_date}/${lesson.period}`}
                                   className="block w-full h-full bg-blue-100 text-blue-800 p-2 rounded text-xs md:text-sm font-bold shadow-sm flex flex-col justify-center text-center hover:bg-blue-200 transition duration-150 transform hover:scale-[1.02]"
                                 >
                                   <span>{lesson.classes.name}</span>
