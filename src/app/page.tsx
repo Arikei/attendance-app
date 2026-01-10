@@ -23,6 +23,7 @@ type ScheduleItem = {
   memo: string | null;
   classes: {
     name: string;
+    id: number; 
   } | null;
 };
 
@@ -127,7 +128,7 @@ export default function Home() {
       .from('attendances')
       .select(`
         *,
-        classes!fk_classes ( name )
+        classes!fk_classes ( name ,id)
       `)
       .gte('lesson_date', startDate)
       .lte('lesson_date', endDate)
@@ -324,13 +325,17 @@ export default function Home() {
                           
                           return (
                             <td key={period} className="p-2 border h-16 align-top">
-                              {lesson ? (
-                                <div className="bg-blue-100 text-blue-800 p-2 rounded text-xs md:text-sm font-bold shadow-sm h-full flex flex-col justify-center text-center">
-                                  <span>{lesson.classes?.name || '不明'}</span>
+                              {lesson && lesson.classes ? (
+                                // ★ここをLinkタグに変更してクリック可能にしました
+                                <Link 
+                                  href={`/class/${lesson.classes.id}`}
+                                  className="block w-full h-full bg-blue-100 text-blue-800 p-2 rounded text-xs md:text-sm font-bold shadow-sm flex flex-col justify-center text-center hover:bg-blue-200 transition duration-150 transform hover:scale-[1.02]"
+                                >
+                                  <span>{lesson.classes.name}</span>
                                   {lesson.memo && <span className="text-[10px] text-blue-600 font-normal mt-1 truncate">{lesson.memo}</span>}
-                                </div>
+                                </Link>
                               ) : (
-                                <span className="text-gray-200 text-xs text-center block">-</span>
+                                <span className="text-gray-200 text-xs text-center block h-full flex items-center justify-center">-</span>
                               )}
                             </td>
                           );
