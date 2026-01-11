@@ -51,15 +51,16 @@ export default function ClassDetail() {
   // 日付フォーマット (例: 2026年-1月-1日-1限)
   const formatLessonString = (dateStr: string, period: number) => {
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return `${dateStr}-${period}限`;
 
+    const periodStr = period === 8 ? 'SHR' : `${period}限`; // 8限ならSHR
+
+    if (isNaN(d.getTime())) return `${dateStr} - ${periodStr}`;
     const year = d.getFullYear();
     const month = d.getMonth() + 1;
     const day = d.getDate();
     const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
     const weekDay = weekDays[d.getDay()];
-
-    return `${year}年${month}月${day}日(${weekDay})-${period}限`;
+    return `${year}年${month}月${day}日(${weekDay}) - ${periodStr}`;
   };
 
   const handleAddLesson = async (e: React.FormEvent) => {
@@ -180,7 +181,9 @@ export default function ClassDetail() {
                     {formatLessonString(lesson.lesson_date, lesson.period)}
                   </h2>
                   {lesson.memo && (
-                    <p className="text-gray-500 mt-1 text-sm">📝 {lesson.memo}</p>
+                    <div className="text-gray-500 mt-2 text-sm whitespace-pre-wrap leading-relaxed">
+                      📝 {lesson.memo}
+                    </div>                  
                   )}
                 </Link>
 

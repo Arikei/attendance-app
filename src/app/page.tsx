@@ -27,6 +27,11 @@ type ScheduleItem = {
   } | null;
 };
 
+type DailyMemo = {
+  memo_date: string;
+  content: string;
+};
+
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true); // ログイン確認中か？
@@ -37,6 +42,7 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
+  const [dailyMemos, setDailyMemos] = useState<DailyMemo[]>([]); // ★追加: メモの状態
   const [loadingSchedule, setLoadingSchedule] = useState(false);
 
   const supabase = createClient();
@@ -138,7 +144,36 @@ export default function Home() {
     } else {
       setSchedules(data as any[] || []);
     }
+
+    // ★追加: 日次メモの取得
+    const { data: memoData, error: memoError } = await supabase
+      .from('daily_memos')
+      .select('*')
+      .gte('memo_date', startDate)
+      .lte('memo_date', endDate);
+
+    if (memoError) console.error('Error fetching memos:', memoError);
+    else setDailyMemos(memoData as DailyMemo[] || []);
+
     setLoadingSchedule(false);
+  };
+
+  const handleMemoChange = (dateStr: string, newContent: string) => {
+    setDailyMemos(prev => {
+      const exists = prev.find(m => m.memo_date === dateStr);
+      if (exists) {
+        return prev.map(m => m.memo_date === dateStr ? { ...m, content: newContent } : m);
+      } else {
+        return [...prev, { memo_date: dateStr, content: newContent }];
+      }
+    });
+  };
+
+  const handleMemoBlur = async (dateStr: string, content: string) => {
+    const { error } = await supabase
+      .from('daily_memos')
+      .upsert({ memo_date: dateStr, content }, { onConflict: 'memo_date' });
+    if (error) console.error('Memo save error:', error);
   };
 
   // ■ 5. カレンダー操作
@@ -294,8 +329,11 @@ export default function Home() {
               <thead>
                 <tr className="bg-gray-100 text-gray-600 text-sm">
                   <th className="p-3 border text-left min-w-[100px] sticky left-0 bg-gray-100 z-10">日付</th>
+                  <th className="p-3 border min-w-[150px] bg-gray-100">メモ</th>
                   {PERIODS.map(p => (
-                    <th key={p} className="p-3 border min-w-[120px] text-center">{p}限</th>
+                    <th key={p} className="p-3 border min-w-[120px] text-center">
+                      {p === 8 ? 'SHR' : `${p}限`}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -306,7 +344,7 @@ export default function Home() {
                   getDaysInMonth().map((day) => {
                     const isWeekend = day.dayOfWeek === 0 || day.dayOfWeek === 6;
                     const rowBg = day.dayOfWeek === 0 ? 'bg-red-50' : day.dayOfWeek === 6 ? 'bg-blue-50' : 'bg-white';
-
+                    const currentMemo = dailyMemos.find(m => m.memo_date === day.date)?.content || '';
                     return (
                       <tr key={day.date} className={rowBg}>
                         {/* 日付カラム */}
@@ -315,7 +353,17 @@ export default function Home() {
                             {day.day}日 ({WEEK_DAYS[day.dayOfWeek]})
                           </span>
                         </td>
-
+                        {/* ★追加: 日次メモ入力カラム */}
+                        <td className="p-2 border align-top">
+                          <textarea
+                            value={currentMemo}
+                            onChange={(e) => handleMemoChange(day.date, e.target.value)}
+                            onBlur={(e) => handleMemoBlur(day.date, e.target.value)}
+                            placeholder="..."
+                            rows={2} // デフォルト2行
+                            className="w-full min-h-[60px] bg-transparent border-none focus:ring-0 text-sm text-gray-700 placeholder-gray-300 resize-none whitespace-pre-wrap leading-relaxed"
+                          />
+                        </td>
                         {/* 1限〜8限のセル */}
                         {PERIODS.map((period) => {
                           // この日・この時限の授業を探す
@@ -330,7 +378,11 @@ export default function Home() {
                                   className="block w-full h-full bg-blue-100 text-blue-800 p-2 rounded text-xs md:text-sm font-bold shadow-sm flex flex-col justify-center text-center hover:bg-blue-200 transition duration-150 transform hover:scale-[1.02]"
                                 >
                                   <span>{lesson.classes.name}</span>
-                                  {lesson.memo && <span className="text-[10px] text-blue-600 font-normal mt-1 truncate">{lesson.memo}</span>}
+                                  {lesson.memo && (
+                                    <div className="text-[10px] text-blue-600 font-normal mt-1 whitespace-pre-wrap leading-tight text-left break-words">
+                                      {lesson.memo}
+                                    </div>
+                                  )}
                                 </Link>
                               ) : (
                                 <span className="text-gray-200 text-xs text-center block h-full flex items-center justify-center">-</span>
