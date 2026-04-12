@@ -13,6 +13,8 @@ export interface Stamp {
   id: number;
   x: number;
   y: number;
+  // ↓↓↓ この1行を追加してください！ ↓↓↓
+  type?: 'absent' | 'late'; 
 }
 
 export interface ClassData {
