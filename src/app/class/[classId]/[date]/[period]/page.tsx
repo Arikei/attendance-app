@@ -83,13 +83,14 @@ export default function AttendancePage({
   };
 
   const getCoordinates = (clientX: number, clientY: number) => {
-    if (!imgContainerRef.current) return null;
-    const rect = imgContainerRef.current.getBoundingClientRect();
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
-    };
-  };
+    if (!imgContainerRef.current) return null;
+    const rect = imgContainerRef.current.getBoundingClientRect();
+    return {
+      // 幅と高さに対する割合（%）に変換する
+      x: ((clientX - rect.left) / rect.width) * 100,
+      y: ((clientY - rect.top) / rect.height) * 100
+    };
+  };
 
   // --- 操作ロジック (変更なし) ---
   const handleContainerClick = (e: MouseEvent<HTMLDivElement>) => {
@@ -213,7 +214,7 @@ export default function AttendancePage({
                         : (draggingId === stamp.id ? 'scale-125 cursor-grabbing z-10' : 'cursor-grab hover:scale-110 z-0') 
                       }
                     `}
-                    style={{ left: `${stamp.x}px`, top: `${stamp.y}px` }}
+                    style={{ left: `${stamp.x}%`, top: `${stamp.y}%` }}
                   >
                     <div 
                           className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-white shadow-md select-none text-white"
