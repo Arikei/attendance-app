@@ -8,7 +8,7 @@ import Link from 'next/link';
 // （空っぽのままなら、Googleアカウントを持っている人は誰でも入れます）
 const ALLOWED_EMAILS: string[] = [
   'readings1218@gmail.com', 
-  // 'teacher@university.ac.jp',
+  't-aritake@e.osakamanabi.jp',
 ];
 
 type ClassItem = {
